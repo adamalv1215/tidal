@@ -1,7 +1,13 @@
 /* CREATING A WORKING TABLE */
 
 CREATE TABLE tidal.streaming_working AS
-  SELECT artist_name, track_title, entry_date, stream_duration_ms, city_name, country_name
+  SELECT
+    artist_name,
+    track_title,
+    entry_date,
+    stream_duration_ms,
+    city_name,
+    country_name
   FROM `steadfast-icon-112120.tidal.streaming`
 ;
 
