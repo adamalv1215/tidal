@@ -73,7 +73,7 @@ GROUP BY artist_name
 ORDER BY ms DESC Limit 100
 ;
 
--- Calculating total streaming stats
+-- Calculating total streaming stats (total ms, mins, hrs, days, total songs, and total artists)
 
 SELECT
     SUM(stream_duration_ms) AS total_ms
@@ -96,8 +96,8 @@ ORDER BY country_name ASC, city_name ASC
 
 -- Top 10 Songs by Country
 
-WITH cte2 AS(
-WITH cte AS (
+WITH rankedSongs AS(
+WITH songlistbyCo AS (
   SELECT
       artist_name
     , track_title
@@ -110,7 +110,7 @@ SELECT
   , artist_name
   , track_title
   , COUNT(track_title) AS play_count
-FROM cte
+FROM songlistbyCo
 GROUP BY
     country_name
   , artist_name
@@ -118,7 +118,7 @@ GROUP BY
 ORDER BY country_name ASC
 )
 SELECT *
-FROM cte2
+FROM rankedSongs
 WHERE ranking <= 10 AND country_name IS NOT NULL
 ;
 
@@ -127,7 +127,7 @@ WHERE ranking <= 10 AND country_name IS NOT NULL
 
 -- Total Play Duration by Year
 
-WITH cte AS (
+WITH songlistbyMsYr AS (
   SELECT
       artist_name
     , track_title
@@ -136,18 +136,18 @@ WITH cte AS (
   FROM tidal.streaming_working
 )
 SELECT
-    ROUND(SUM(cte.stream_duration_ms)) AS streaming_total_ms
+    ROUND(SUM(trackList.stream_duration_ms)) AS streaming_total_ms
   , ROUND((SUM(stream_duration_ms) / 3600000)) AS streaming_total_hrs
-  , cte.yr
-FROM cte
-WHERE cte.yr > '2018' AND cte.yr < '2025'
-GROUP BY cte.yr
-ORDER BY cte.yr ASC
+  , songlistbyMsYr.yr
+FROM songlistbyMsYr
+WHERE songlistbyMsYr.yr > '2018' AND songlistbyMsYr.yr < '2025'
+GROUP BY songlistbyMsYr.yr
+ORDER BY songlistbyMsYr.yr ASC
 ;
 
 -- Total Play Duration by Month
 
-WITH cte AS (
+WITH songlistbyMS AS (
   SELECT
       artist_name
     , track_title
@@ -158,16 +158,16 @@ WITH cte AS (
 SELECT
     ROUND(SUM(cte.stream_duration_ms)) AS streaming_total_ms
   , ROUND((SUM(stream_duration_ms) / 3600000)) AS streaming_total_hrs
-  , cte.year_month
-FROM cte
-GROUP BY cte.year_month
-ORDER BY cte.year_month ASC
+  , songlistbyMS.year_month
+FROM songlistbyMS
+GROUP BY songlistbyMS.year_month
+ORDER BY songlistbyMS.year_month ASC
 ;
 
 -- Top 10 Songs by Month
 
-WITH cte2 AS(
-WITH cte AS (
+WITH rankedSongsbyMonth AS(
+WITH songlistbyYrMo AS (
   SELECT
       artist_name
     , track_title
@@ -176,19 +176,19 @@ WITH cte AS (
 )
 SELECT
     RANK() OVER(PARTITION BY year_month ORDER BY COUNT(track_title) DESC) AS ranking
-  , cte.year_month
+  , songlistbyYrMo.year_month
   , artist_name
   , track_title
   , COUNT(track_title) AS play_count
 FROM cte
 GROUP BY
-    cte.year_month
+    songlistbyYrMo.year_month
   , artist_name
   , track_title
-ORDER BY cte.year_month ASC
+ORDER BY songlistbyYrMo.year_month ASC
 )
 SELECT *
-FROM cte2
+FROM rankedSongsbyMonth
 WHERE ranking <= 10
 ;
 
